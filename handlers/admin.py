@@ -1,3 +1,4 @@
+import random
 import asyncio
 from aiogram import Router
 from aiogram.types import Message
@@ -7,6 +8,17 @@ from database.requests import get_chat_users, get_exceptions, add_exception, rem
 
 
 router = Router()
+
+
+EMOJIS = [
+    "🐸", "🐼", "🐭", "🦁", "🐮", "🐷", "🐨", "🐯", "🐙", "🐵",
+    "🦄", "🐞", "🦀", "🐠", "🐊", "🐓", "🦃", "🐈", "🐕", "🦕",
+    "🦖", "🦍", "🦧", "🦥", "🦦", "🦨", "🦘", "🦡", "🐘", "🍎",
+    "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍈", "🍒", "🥐",
+    "🥯", "🥖", "🥨", "🥞", "🧇", "🧀", "🍖", "🍕", "🌭", "⚽",
+    "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🎱", "⌚", "📱",
+    "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇"
+]
 
 
 def is_admin(message: Message) -> bool:
@@ -41,18 +53,25 @@ async def cmd_call(message: Message, command: CommandObject):
         if u_name and u_name in exceptions:
             continue
 
-        if user.username:
-            mentions.append(f"@{user.username}")
-        else:
-            mentions.append(f"<a href='tg://user?id={user.user_id}'>{user.full_name}</a>")
+        random_emoji = random.choice(EMOJIS)
+        link = f"<a href='tg://user?id={user.user_id}'>{random_emoji}</a>"
+        mentions.append(link)
 
     if not mentions:
         return await message.reply("Некого звать")
 
+    random.shuffle(mentions)
+
     chunk_size = 10
     for i in range(0, len(mentions), chunk_size):
         chunk = mentions[i:i + chunk_size]
-        text = f"<b>{reason}</b>\n\n" + ", ".join(chunk)
+        mentions_text = " ".join(chunk)
+
+        if i == 0:
+            text = f"<b>{reason}</b>\n\n{mentions_text}"
+        else:
+            text = mentions_text
+
         await message.answer(text, parse_mode=ParseMode.HTML)
         await asyncio.sleep(0.5)
 
@@ -60,7 +79,7 @@ async def cmd_call(message: Message, command: CommandObject):
 
 
 @router.message(Command("mute"))
-async def cmd_ignore(message: Message, command: CommandObject):
+async def cmd_mute(message: Message, command: CommandObject):
     if not await check_admin_rights(message):
         return None
 
@@ -75,7 +94,7 @@ async def cmd_ignore(message: Message, command: CommandObject):
 
 
 @router.message(Command("unmute"))
-async def cmd_unignore(message: Message, command: CommandObject):
+async def cmd_unmute(message: Message, command: CommandObject):
     if not await check_admin_rights(message):
         return None
 
