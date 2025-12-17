@@ -1,14 +1,16 @@
 import random
 import asyncio
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
-from aiogram.enums import ChatMemberStatus, ParseMode
+from aiogram.enums import ParseMode
 from database.requests import get_chat_users, get_exceptions, add_exception, remove_exception
+from filters.chat_type import IsGroup
+from filters.user_status import IsAdmin
 
 
 router = Router()
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
+router.message.filter(IsGroup, IsAdmin)
 
 
 EMOJIS = [
@@ -22,16 +24,8 @@ EMOJIS = [
 ]
 
 
-async def check_admin_rights(message: Message):
-    member = await message.chat.get_member(message.from_user.id)
-    return member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR]
-
-
 @router.message(Command("call"))
 async def cmd_call(message: Message, command: CommandObject):
-    if not await check_admin_rights(message):
-        return await message.reply("Только администраторы могут вызывать всех")
-
     users = await get_chat_users(message.chat.id)
     exceptions = await get_exceptions(message.chat.id)
 
@@ -77,9 +71,6 @@ async def cmd_call(message: Message, command: CommandObject):
 
 @router.message(Command("mute"))
 async def cmd_mute(message: Message, command: CommandObject):
-    if not await check_admin_rights(message):
-        return await message.reply("Только администраторы могут добавлять в исключения")
-
     target = command.args
     if not target:
         return await message.reply("Используйте: /mute @username или ID")
@@ -92,9 +83,6 @@ async def cmd_mute(message: Message, command: CommandObject):
 
 @router.message(Command("unmute"))
 async def cmd_unmute(message: Message, command: CommandObject):
-    if not await check_admin_rights(message):
-        return await message.reply("Только администраторы могут удалять из исключений")
-
     target = command.args
     if not target:
         return await message.reply("Используйте: /unmute @username или ID")

@@ -1,13 +1,15 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import Message
 from database.requests import upsert_user
+from filters.chat_type import IsGroup
+from filters.user_status import IsNotBot
 
 
 router = Router()
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
+router.message.filter(IsGroup, IsNotBot)
 
 
-@router.message
+@router.message()
 async def capture_message(message: Message):
     if message.from_user and not message.from_user.is_bot:
         await upsert_user(
