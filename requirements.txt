@@ -2,3 +2,4 @@ aiogram==3.23.0
 aiosqlite==0.22.0
 python-dotenv==1.2.1
 sqlalchemy==2.0.45
+alembic==1.17.2

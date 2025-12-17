@@ -4,7 +4,7 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
 from aiogram.enums import ParseMode
-from database.requests import get_chat_users, get_exceptions, add_exception, remove_exception
+from database.requests import get_active_users, set_ignore_status
 from filters.chat_type import IsGroup
 from filters.user_status import IsAdmin
 
@@ -26,24 +26,15 @@ EMOJIS = [
 
 @router.message(Command("call"))
 async def cmd_call(message: Message, command: CommandObject):
-    users = await get_chat_users(message.chat.id)
-    exceptions = await get_exceptions(message.chat.id)
+    users = await get_active_users(message.chat.id)
 
     if not users:
-        return await message.reply("База пользователей пуста. Подождите, пока участники что-нибудь напишут")
+        return await message.reply("База пользователей пуста")
 
     reason = command.args if command.args else "Йоу"
 
     mentions = []
     for user in users:
-        str_id = str(user.user_id)
-        u_name = f"@{user.username}" if user.username else None
-
-        if str_id in exceptions:
-            continue
-        if u_name and u_name in exceptions:
-            continue
-
         random_emoji = random.choice(EMOJIS)
         link = f"<a href='tg://user?id={user.user_id}'>{random_emoji}</a>"
         mentions.append(link)
@@ -73,10 +64,13 @@ async def cmd_call(message: Message, command: CommandObject):
 async def cmd_mute(message: Message, command: CommandObject):
     target = command.args
     if not target:
-        return await message.reply("Используйте: /mute @username или ID")
+        return await message.reply("Укажите ID или @username")
 
-    await add_exception(target.strip(), message.chat.id)
-    await message.reply(f"Пользователь {target} добавлен в исключения")
+    success = await set_ignore_status(message.chat.id, target.strip(), is_ignored=True)
+    if success:
+        await message.reply(f"Пользователь {target} добавлен в исключения")
+    else:
+        await message.reply(f"Пользователь {target} не найден")
 
     return None
 
@@ -85,9 +79,13 @@ async def cmd_mute(message: Message, command: CommandObject):
 async def cmd_unmute(message: Message, command: CommandObject):
     target = command.args
     if not target:
-        return await message.reply("Используйте: /unmute @username или ID")
+        return await message.reply("Укажите ID или @username")
 
-    await remove_exception(target.strip(), message.chat.id)
-    await message.reply(f"Пользователь {target} удален из исключений")
+    success = await set_ignore_status(message.chat.id, target.strip(), is_ignored=False)
+
+    if success:
+        await message.reply(f"Пользователь {target} удален из исключений")
+    else:
+        await message.reply(f"Пользователь {target} не найден")
 
     return None

@@ -1,55 +1,77 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
-from database.models import ChatUser, ExceptionUser
+from database.models import ChatMember
 from database.engine import async_session
 
 
 async def upsert_user(user_id: int, chat_id: int, username: str, full_name: str):
     async with async_session() as session:
-        stmt = insert(ChatUser).values(
+        stmt = insert(ChatMember).values(
             user_id=user_id,
             chat_id=chat_id,
             username=username,
-            full_name=full_name
+            full_name=full_name,
+            is_ignored=False,
+            is_deleted=False
         ).on_conflict_do_update(
             index_elements=['user_id', 'chat_id'],
-            set_=dict(username=username, full_name=full_name)
+            set_=dict(
+                username=username,
+                full_name=full_name,
+                is_deleted=False
+            )
         )
         await session.execute(stmt)
         await session.commit()
 
 
-async def get_chat_users(chat_id: int):
+async def get_active_users(chat_id: int):
     async with async_session() as session:
-        result = await session.execute(select(ChatUser).where(ChatUser.chat_id == chat_id))
+        stmt = select(ChatMember).where(
+            ChatMember.chat_id == chat_id,
+            ChatMember.is_ignored == False,
+            ChatMember.is_deleted == False
+        )
+        result = await session.execute(stmt)
         return result.scalars().all()
 
 
-async def add_exception(identifier: str, chat_id: int):
+async def soft_delete_user(user_id: int, chat_id: int):
     async with async_session() as session:
-        existing = await session.execute(
-            select(ExceptionUser).where(
-                ExceptionUser.identifier == identifier,
-                ExceptionUser.chat_id == chat_id
-            )
-        )
-        if not existing.scalar():
-            session.add(ExceptionUser(identifier=identifier, chat_id=chat_id))
-            await session.commit()
-
-
-async def remove_exception(identifier: str, chat_id: int):
-    async with async_session() as session:
-        await session.execute(
-            delete(ExceptionUser).where(
-                ExceptionUser.identifier == identifier,
-                ExceptionUser.chat_id == chat_id
-            )
-        )
+        stmt = update(ChatMember).where(
+            ChatMember.user_id == user_id,
+            ChatMember.chat_id == chat_id
+        ).values(is_deleted=True)
+        await session.execute(stmt)
         await session.commit()
 
 
-async def get_exceptions(chat_id: int):
+async def set_ignore_status(chat_id: int, identifier: str, is_ignored: bool) -> bool:
     async with async_session() as session:
-        result = await session.execute(select(ExceptionUser.identifier).where(ExceptionUser.chat_id == chat_id))
-        return result.scalars().all()
+        if identifier.isdigit():
+            user_id = int(identifier)
+            stmt = insert(ChatMember).values(
+                user_id=user_id,
+                chat_id=chat_id,
+                is_ignored=is_ignored,
+                full_name="Unknown",
+                is_deleted=False
+            ).on_conflict_do_update(
+                index_elements=['user_id', 'chat_id'],
+                set_=dict(is_ignored=is_ignored)
+            )
+            await session.execute(stmt)
+            await session.commit()
+            return True
+
+        elif identifier.startswith("@"):
+            clean_username = identifier.lstrip("@")
+            stmt = update(ChatMember).where(
+                ChatMember.chat_id == chat_id,
+                ChatMember.username == clean_username
+            ).values(is_ignored=is_ignored)
+            result = await session.execute(stmt)
+            await session.commit()
+            return result.rowcount > 0
+
+        return False
