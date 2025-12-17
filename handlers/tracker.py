@@ -4,9 +4,10 @@ from database.requests import upsert_user
 
 
 router = Router()
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 
 
-@router.message(F.chat.type.in_({'group', 'supergroup'}))
+@router.message
 async def capture_message(message: Message):
     if message.from_user and not message.from_user.is_bot:
         await upsert_user(

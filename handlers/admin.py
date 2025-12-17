@@ -1,6 +1,6 @@
 import random
 import asyncio
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
 from aiogram.enums import ChatMemberStatus, ParseMode
@@ -8,6 +8,7 @@ from database.requests import get_chat_users, get_exceptions, add_exception, rem
 
 
 router = Router()
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 
 
 EMOJIS = [
@@ -19,10 +20,6 @@ EMOJIS = [
     "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🎱", "⌚", "📱",
     "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇"
 ]
-
-
-def is_admin(message: Message) -> bool:
-    return message.chat.type in ['group', 'supergroup']
 
 
 async def check_admin_rights(message: Message):
@@ -81,7 +78,7 @@ async def cmd_call(message: Message, command: CommandObject):
 @router.message(Command("mute"))
 async def cmd_mute(message: Message, command: CommandObject):
     if not await check_admin_rights(message):
-        return None
+        return await message.reply("Только администраторы могут добавлять в исключения")
 
     target = command.args
     if not target:
@@ -96,7 +93,7 @@ async def cmd_mute(message: Message, command: CommandObject):
 @router.message(Command("unmute"))
 async def cmd_unmute(message: Message, command: CommandObject):
     if not await check_admin_rights(message):
-        return None
+        return await message.reply("Только администраторы могут удалять из исключений")
 
     target = command.args
     if not target:
