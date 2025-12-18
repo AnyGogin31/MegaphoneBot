@@ -2,4 +2,6 @@
 /.venv
 *.iml
 *.db
+*.sqlite3
 .env
+docker-compose.yml

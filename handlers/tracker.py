@@ -11,10 +11,9 @@ router.message.filter(IsGroup, IsNotBot)
 
 @router.message()
 async def capture_message(message: Message):
-    if message.from_user and not message.from_user.is_bot:
-        await upsert_user(
-            user_id=message.from_user.id,
-            chat_id=message.chat.id,
-            username=message.from_user.username,
-            full_name=message.from_user.full_name
-        )
+    await upsert_user(
+        user_id=message.from_user.id,
+        chat_id=message.chat.id,
+        username=message.from_user.username,
+        full_name=message.from_user.full_name
+    )

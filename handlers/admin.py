@@ -1,3 +1,4 @@
+import html
 import random
 import asyncio
 from aiogram import Router
@@ -31,16 +32,13 @@ async def cmd_call(message: Message, command: CommandObject):
     if not users:
         return await message.reply("База пользователей пуста")
 
-    reason = command.args if command.args else "Йоу"
+    reason = html.escape(command.args) if command.args else "Йоу"
 
     mentions = []
     for user in users:
         random_emoji = random.choice(EMOJIS)
         link = f"<a href='tg://user?id={user.user_id}'>{random_emoji}</a>"
         mentions.append(link)
-
-    if not mentions:
-        return await message.reply("Некого звать")
 
     random.shuffle(mentions)
 
