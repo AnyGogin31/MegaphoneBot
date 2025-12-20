@@ -1,26 +1,16 @@
 import asyncio
 import logging
-from alembic import command
-from alembic.config import Config
 from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
+from database.migrations import run_migrations
 from handlers import admin, tracker
+from utils.system import configure_event_loop
 
 
 logger = logging.getLogger(__name__)
 
 
-def run_migrations():
-    alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
-
-
 async def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    )
-
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
 
@@ -33,11 +23,13 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
-        run_migrations()
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении базы данных: {e}")
-        exit(1)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    )
+
+    configure_event_loop()
+    run_migrations()
 
     try:
         asyncio.run(main())

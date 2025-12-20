@@ -1,3 +1,4 @@
+import logging
 import asyncio
 from logging.config import fileConfig
 from sqlalchemy import pool
@@ -12,7 +13,8 @@ config = context.config
 config.set_main_option("sqlalchemy.url", DB_URL)
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    if not logging.getLogger().hasHandlers():
+        fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
