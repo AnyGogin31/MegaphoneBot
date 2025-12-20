@@ -7,3 +7,4 @@ Dockerfile
 **/__pycache__/
 **/*.py[cod]
 .env
+.env.dist

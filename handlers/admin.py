@@ -27,17 +27,17 @@ EMOJIS = [
 
 @router.message(Command("call"))
 async def cmd_call(message: Message, command: CommandObject):
-    users = await get_active_users(message.chat.id)
+    users_ids = await get_active_users(message.chat.id)
 
-    if not users:
+    if not users_ids:
         return await message.reply("База пользователей пуста")
 
     reason = html.escape(command.args) if command.args else "Йоу"
 
     mentions = []
-    for user in users:
+    for user_id in users_ids:
         random_emoji = random.choice(EMOJIS)
-        link = f"<a href='tg://user?id={user.user_id}'>{random_emoji}</a>"
+        link = f"<a href='tg://user?id={user_id}'>{random_emoji}</a>"
         mentions.append(link)
 
     random.shuffle(mentions)

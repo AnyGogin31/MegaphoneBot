@@ -25,9 +25,9 @@ async def upsert_user(user_id: int, chat_id: int, username: str, full_name: str)
         await session.commit()
 
 
-async def get_active_users(chat_id: int):
+async def get_active_users(chat_id: int) -> list[int]:
     async with async_session() as session:
-        stmt = select(ChatMember).where(
+        stmt = select(ChatMember.user_id).where(
             ChatMember.chat_id == chat_id,
             ChatMember.is_ignored == False,
             ChatMember.is_deleted == False
