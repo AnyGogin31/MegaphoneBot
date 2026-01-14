@@ -2,6 +2,7 @@ from telethon import TelegramClient
 
 from .configs import api_config, bot_config
 from .database import engine
+from .handlers import register_handlers
 from .utils.logging import get_logger
 
 
@@ -31,6 +32,8 @@ async def start_bot():
     _logger.info("Запуск бота...")
 
     client = await create_client()
+
+    register_handlers(client)
 
     try:
         _logger.info("Бот запущен")
