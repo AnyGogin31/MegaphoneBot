@@ -1,0 +1,10 @@
+services:
+  megaphone-bot:
+    build: .
+    image: megaphone-bot:latest
+    container_name: MegaphoneBot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
