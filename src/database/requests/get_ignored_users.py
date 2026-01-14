@@ -18,4 +18,4 @@ async def get_ignored_users(
 
     async with database_session() as session:
         result = await session.execute(stmt)
-        return result().all()
+        return result.scalars().all()
