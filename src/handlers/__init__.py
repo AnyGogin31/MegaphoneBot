@@ -1,12 +1,12 @@
-from .cmd_call import register_handler as register_call_command_handlers
-from .cmd_mute import register_handler as register_mute_command_handlers
-from .cmd_unmute import register_handler as register_unmute_command_handlers
+from .cmd_call import register_call_command_handler
+from .cmd_mute import register_mute_command_handler
+from .cmd_unmute import register_unmute_command_handler
 
 
 _handler_registration_functions = [
-    register_call_command_handlers,
-    register_mute_command_handlers,
-    register_unmute_command_handlers,
+    register_call_command_handler,
+    register_mute_command_handler,
+    register_unmute_command_handler,
 ]
 
 

@@ -23,8 +23,8 @@ EMOJIS = [
 ]
 
 
-def register_handler(client):
-    @client.on(events.NewMessage(pattern=r'/call(?: (.+))?'))
+def register_call_command_handler(client):
+    @client.on(events.NewMessage(pattern=r'^/call(?:@[\w_]+bot)?(?:\s+(.+))?$'))
     async def call_command(event):
         if not event.is_group and not event.is_channel:
             return None
