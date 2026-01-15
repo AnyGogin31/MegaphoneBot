@@ -2,6 +2,7 @@
 .gitignore
 
 docker-compose.yml
+docker-compose.yml.dist
 Dockerfile
 .docker
 .dockerignore
