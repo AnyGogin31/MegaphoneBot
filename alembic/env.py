@@ -1,22 +1,23 @@
-import logging
+from alembic import context
+
 import asyncio
+
+from logging import getLogger
 from logging.config import fileConfig
+
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
-from config import DB_URL
-from database.models import Base
+
+from src.database.models import BaseModel
 
 
 config = context.config
-config.set_main_option("sqlalchemy.url", DB_URL)
-
 if config.config_file_name is not None:
-    if not logging.getLogger().hasHandlers():
+    if not getLogger().hasHandlers():
         fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = BaseModel.metadata
 
 
 def run_migrations_offline() -> None:
