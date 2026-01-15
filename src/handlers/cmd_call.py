@@ -9,6 +9,7 @@ from random import (
 
 from telethon import events
 
+from .is_admin import is_admin
 from ..database.requests import get_ignored_users
 
 
@@ -27,8 +28,9 @@ def register_call_command_handler(client):
     @client.on(events.NewMessage(pattern=r'^/call(?:@[\w_]+bot)?(?:\s+(.+))?$'))
     async def call_command(event):
         if not event.is_group and not event.is_channel:
-            return None
-        # TODO not is_admin
+            return
+        if not await is_admin(event.client, event.sender_id, event.chat_id):
+            return
 
         ignored_users = await get_ignored_users(event.chat_id)
         all_users = await event.client.get_participants(event.chat_id)
@@ -37,7 +39,8 @@ def register_call_command_handler(client):
         ]
 
         if not active_users:
-            return await event.reply("База пользователей пуста")
+            await event.reply("База пользователей пуста")
+            return
 
         reason_match = event.pattern_match.group(1)
         reason = escape(reason_match.strip()) if reason_match else "Йоу"
@@ -66,5 +69,3 @@ def register_call_command_handler(client):
                 parse_mode='html'
             )
             await sleep(0.5)
-
-        return None

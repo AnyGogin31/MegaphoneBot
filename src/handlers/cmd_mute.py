@@ -1,5 +1,6 @@
 from telethon import events
 
+from .is_admin import is_admin
 from ..database.requests import add_to_ignore
 
 
@@ -7,12 +8,14 @@ def register_mute_command_handler(client):
     @client.on(events.NewMessage(pattern=r'^/mute(?:@[\w_]+bot)?\s+([@]\w+|[-]?\d{5,})'))
     async def mute_command(event):
         if not event.is_group and not event.is_channel:
-            return None
-        # TODO not is_admin
+            return
+        if not await is_admin(event.client, event.sender_id, event.chat_id):
+            return
 
         target = event.pattern_match.group(1).strip()
         if not target:
-            return await event.reply("Укажите ID или @username")
+            await event.reply("Укажите ID или @username")
+            return
 
         try:
             user_id = await client.get_entity(target) if target.startswith('@') else int(target)
