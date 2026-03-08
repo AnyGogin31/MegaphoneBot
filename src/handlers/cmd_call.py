@@ -59,8 +59,7 @@ def register_call_command_handler(client):
             return
 
         reason_match = event.pattern_match.group(1)
-        reason = escape(reason_match.strip()) if reason_match else "Йоу"
-
+        reason = escape(reason_match.strip()) if reason_match else None
         mentions = []
         for user in active_users:
             random_emoji = choice(EMOJIS)
@@ -73,8 +72,7 @@ def register_call_command_handler(client):
         for i in range(0, len(mentions), chunk_size):
             chunk = mentions[i:i + chunk_size]
             mentions_text = " ".join(chunk)
-
-            if i == 0:
+            if reason:
                 text = f"<b>{reason}</b>\n\n{mentions_text}"
             else:
                 text = mentions_text
