@@ -54,6 +54,8 @@ def register_call_command_handler(client):
             user for user in all_users if not user.bot and user.id not in ignored_users
         ]
 
+        topic_id = get_topic_id(event.message)
+
         if not active_users:
             await event.reply("База пользователей пуста")
             return
@@ -80,6 +82,7 @@ def register_call_command_handler(client):
             await event.client.send_message(
                 event.chat_id,
                 text,
-                parse_mode='html'
+                parse_mode='html',
+                reply_to=topic_id
             )
             await sleep(0.5)
