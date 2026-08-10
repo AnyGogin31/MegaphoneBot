@@ -25,6 +25,7 @@ from random import (
 
 from telethon import events
 
+from .get_topic_id import get_topic_id
 from .is_admin import is_admin
 from ..database.requests import get_ignored_users
 
